@@ -25,7 +25,10 @@ class OpenAIModel(ModelInterface):
         os.environ["OPENAI_API_KEY"] = api_key
         self.api_key = api_key
         self.base_url = 'https://api.openai.com/v1'
-
+        self.llm = OpenAI(model_name="gpt-3.5-turbo")
+        self.tools = load_tools(["google-search"], llm=self.llm)
+        self.agent = initialize_agent(self.tools, self.llm, agent="zero-shot-react-description", verbose=True)
+        
     def _request(self, method, endpoint, body=None, files=None):
         self.headers = {
             'Authorization': f'Bearer {self.api_key}'
