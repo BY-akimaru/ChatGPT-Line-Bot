@@ -56,7 +56,7 @@ def handle_text_message(event):
     logger.info(f'{user_id}: {text}')
 
     try:
-        if text.startswith('/註冊'):
+        if text.startswith('/接続'):
             api_key = text[3:].strip()
             model = OpenAIModel(api_key=api_key)
             is_successful, _, _ = model.check_token_valid()
@@ -66,7 +66,7 @@ def handle_text_message(event):
             storage.save({
                 user_id: api_key
             })
-            msg = TextSendMessage(text='Token 有效，註冊成功')
+            msg = TextSendMessage(text='トークン有効。接続成功しました')
 
         elif text.startswith('/指令說明'):
             msg = TextSendMessage(text="指令：\n/註冊 + API Token\n👉 API Token 請先到 https://platform.openai.com/ 註冊登入後取得\n\n/系統訊息 + Prompt\n👉 Prompt 可以命令機器人扮演某個角色，例如：請你扮演擅長做總結的人\n\n/清除\n👉 當前每一次都會紀錄最後兩筆歷史紀錄，這個指令能夠清除歷史訊息\n\n/圖像 + Prompt\n👉 會調用 DALL∙E 2 Model，以文字生成圖像\n\n語音輸入\n👉 會調用 Whisper 模型，先將語音轉換成文字，再調用 ChatGPT 以文字回覆\n\n其他文字輸入\n👉 調用 ChatGPT 以文字回覆")
@@ -75,11 +75,11 @@ def handle_text_message(event):
             memory.change_system_message(user_id, text[5:].strip())
             msg = TextSendMessage(text='輸入成功')
 
-        elif text.startswith('/清除'):
+        elif text.startswith('/リセット'):
             memory.remove(user_id)
-            msg = TextSendMessage(text='歷史訊息清除成功')
+            msg = TextSendMessage(text='リセット完了。会話履歴を削除しました。')
 
-        elif text.startswith('/圖像'):
+        elif text.startswith('/画像'):
             prompt = text[3:].strip()
             memory.append(user_id, 'user', prompt)
             is_successful, response, error_message = model_management[user_id].image_generations(prompt)
@@ -121,14 +121,14 @@ def handle_text_message(event):
                 is_successful, response, error_message = user_model.chat_completions(memory.get(user_id), os.getenv('OPENAI_MODEL_ENGINE'))
                 if not is_successful:
                     raise Exception(error_message)
-                # role, response = get_role_and_content(response)
-                role = "assistant"
+                #role, response = get_role_and_content(response)
+                role="assistant"
                 msg = TextSendMessage(text=response)
             memory.append(user_id, role, response)
     except ValueError:
-        msg = TextSendMessage(text='Token 無效，請重新註冊，格式為 /註冊 sk-xxxxx')
+        msg = TextSendMessage(text='トークンが無効です。もう一度次のコマンドをお試しください。 /接続 sk-xxxxx')
     except KeyError:
-        msg = TextSendMessage(text='請先註冊 Token，格式為 /註冊 sk-xxxxx')
+        msg = TextSendMessage(text='トークンを設定してください。 /接続 sk-xxxxx')
     except Exception as e:
         memory.remove(user_id)
         if str(e).startswith('Incorrect API key provided'):
