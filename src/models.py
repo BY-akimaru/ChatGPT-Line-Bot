@@ -51,6 +51,8 @@ class OpenAIModel(ModelInterface):
         return self._request('GET', '/models')
 
     def chat_completions(self, messages, model_engine) -> str:
+        m = self.agent.run(messages).answer
+        return True, m, None
         json_body = {
             'model': model_engine,
             'messages': messages
