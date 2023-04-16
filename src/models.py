@@ -1,4 +1,8 @@
 from typing import List, Dict
+from langchain.llms import OpenAI
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+
 import requests
 
 
@@ -18,6 +22,7 @@ class ModelInterface:
 
 class OpenAIModel(ModelInterface):
     def __init__(self, api_key: str):
+        os.environ["OPENAI_API_KEY"] = api_key
         self.api_key = api_key
         self.base_url = 'https://api.openai.com/v1'
 
